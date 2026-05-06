@@ -32,7 +32,7 @@ const INITIAL_JOBS = [
     id: "j2",
     customer: "Sophie Blackwell",
     vehicle: "Audi A4",
-    reg: "MK72 XYZ",
+  2 reg: "MK72 XYZ",
     colour: "Glacier White",
     pickupTime: "06:10",
     returnTime: "12 May, 11:30",
@@ -104,7 +104,7 @@ const INITIAL_JOBS = [
     colour: "Selenite Grey",
     pickupTime: "09:00",
     returnTime: "11 May, 06:30",
-    zone: "Zone D – P9",
+  2 zone: "Zone D – P9",
     driverId: "d2",
     flight: "LH902 LHR→FRA",
     flightDelayed: false,
@@ -181,7 +181,7 @@ function Badge({ status }) {
   );
 }
 
-// ─── Job Card (Dashboard) ───────────────────────────────────────────────────────────────────────────────────────────────────
+// ─── Job Card (Dashboard) ─────────────────────────────────────────────────────
 
 function JobCard({ job, onClick, isSelected }) {
   const cfg = STATUS_CONFIG[job.status];
@@ -267,7 +267,7 @@ function EditPanel({ job, onUpdate, onClose }) {
         onClick={save}
         className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-sm transition-colors"
       >
-        Save Changes
+  2     Save Changes
       </button>
     </div>
   );
@@ -279,7 +279,8 @@ function DriverPanel({ jobs }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
       <h3 className="font-bold text-gray-900 mb-3 text-sm">Driver Roster</h3>
-      <div className="space-y-3">
+      {/* On mobile show 2-col grid; on lg+ show stacked list */}
+      <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
         {DRIVERS.map(d => {
           const assigned = jobs.filter(j => j.driverId === d.id && j.status !== "complete");
           const active   = assigned.filter(j => j.status === "in_progress").length;
@@ -290,7 +291,7 @@ function DriverPanel({ jobs }) {
                 <p className="text-sm font-medium text-gray-800 truncate">{d.name}</p>
                 <p className="text-xs text-gray-500">{assigned.length} job{assigned.length !== 1 ? "s" : ""} · {active} active</p>
               </div>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${active > 0 ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${active > 0 ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}>
                 {active > 0 ? "On job" : "Free"}
               </span>
             </div>
@@ -319,8 +320,9 @@ function StatsBar({ jobs }) {
   ];
 
   return (
-    <div className="grid grid-cols-5 gap-3 mb-5">
-      {stats.map(s => (
+    // 2 cols on mobile → 3 cols on sm → 5 cols on md+
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-3 mb-5">
+  2   {stats.map(s => (
         <div key={s.label} className={`${s.bg} rounded-xl p-3 text-center`}>
           <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
           <p className="text-xs text-gray-600 mt-0.5">{s.label}</p>
@@ -337,7 +339,7 @@ function DelayBanner({ jobs }) {
   if (delayed.length === 0) return null;
   return (
     <div className="mb-4 bg-orange-50 border border-orange-300 rounded-xl px-4 py-3 flex items-start gap-3">
-      <span className="text-2xl">✈️</span>
+      <span className="text-2xl flex-shrink-0">✈️</span>
       <div>
         <p className="font-bold text-orange-800 text-sm">Flight Delay Alert</p>
         <p className="text-xs text-orange-700 mt-0.5">
@@ -357,7 +359,8 @@ function DashboardView({ jobs, onUpdate }) {
   const filtered = filter === "all" ? jobs : jobs.filter(j => j.status === filter);
 
   return (
-    <div className="flex gap-5">
+    // Mobile: single column stack. lg+: side-by-side with fixed-width sidebar
+    <div className="flex flex-col lg:flex-row gap-5">
       {/* Main column */}
       <div className="flex-1 min-w-0">
         <DelayBanner jobs={jobs} />
@@ -371,12 +374,12 @@ function DashboardView({ jobs, onUpdate }) {
               onClick={() => setFilter(k)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${filter === k ? "bg-indigo-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
             >
-              {l}
+            2 {l}
             </button>
           ))}
         </div>
 
-        {/* Job grid */}
+        {/* Job grid — 1 col on mobile, 2 cols on lg+ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {filtered.map(job => (
             <JobCard
@@ -392,8 +395,8 @@ function DashboardView({ jobs, onUpdate }) {
         </div>
       </div>
 
-      {/* Right sidebar */}
-      <div className="w-72 flex-shrink-0 space-y-4">
+      {/* Sidebar — full width below job board on mobile, fixed 288px on lg+ */}
+      <div className="w-full lg:w-72 lg:flex-shrink-0 space-y-4">
         {selected && (
           <EditPanel
             job={selected}
@@ -468,13 +471,13 @@ function DriverJobCard({ job, onAction }) {
 
         {/* Action buttons */}
         <div className="mt-4 space-y-2">
-          {job.status === "awaiting" && (
+     2    {job.status === "awaiting" && (
             <button
               onClick={() => onAction(job.id, "start")}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition-colors shadow"
             >
               🚗 Start Job
-            </button>
+           2</button>
           )}
 
           {job.status === "in_progress" && (
@@ -488,7 +491,7 @@ function DriverJobCard({ job, onAction }) {
               </button>
               <button
                 onClick={handleSign}
-                disabled={signing || sigDone}
+              2 disabled={signing || sigDone}
                 className={`w-full font-bold py-3 rounded-xl text-sm transition-colors shadow ${sigDone ? "bg-green-100 text-green-700" : "bg-gray-100 hover:bg-gray-200 text-gray-800"}`}
               >
                 {signing ? "Opening pad…" : sigDone ? "✅ Signature Captured" : "✍️ Get Signature"}
@@ -507,7 +510,7 @@ function DriverJobCard({ job, onAction }) {
           )}
 
           {job.status === "issue" && (
-            <button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl text-sm transition-colors shadow">
+         2  <button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl text-sm transition-colors shadow">
               🚨 Report Issue Details
             </button>
           )}
@@ -522,18 +525,19 @@ function DriverAppView({ jobs, onAction }) {
   const active  = myJobs.filter(j => j.status !== "complete").length;
 
   return (
-    <div className="max-w-md mx-auto">
+    // Full width on mobile; max-w-lg centred on desktop so it doesn't stretch too wide
+    <div className="w-full max-w-lg mx-auto">
       {/* Driver header */}
       <div className="bg-indigo-700 text-white rounded-2xl p-4 mb-5 flex items-center gap-4">
         <Avatar initials={LOGGED_IN_DRIVER.avatar} size="lg" />
-        <div>
-          <p className="font-bold text-lg">{LOGGED_IN_DRIVER.name}</p>
+        <div className="min-w-0">
+          <p className="font-bold text-lg truncate">{LOGGED_IN_DRIVER.name}</p>
           <p className="text-indigo-200 text-sm">{LOGGED_IN_DRIVER.phone}</p>
           <p className="text-indigo-200 text-xs">{active} active job{active !== 1 ? "s" : ""}</p>
         </div>
-        <div className="ml-auto text-right">
+        <div className="ml-auto text-right flex-shrink-0">
           <p className="text-indigo-200 text-xs">Heathrow</p>
-          <p className="font-mono text-sm">{new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</p>
+     2    <p className="font-mono text-sm">{new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</p>
         </div>
       </div>
 
@@ -576,49 +580,30 @@ export default function App() {
       if (action === "complete") return { ...j, status: "complete" };
       return j;
     }));
-  }
+ 2 }
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* ── Top nav ── */}
+      {/* ´ Top nav ´ */}
       <header className="bg-indigo-800 text-white shadow-lg">
-        <div className="max-w-screen-xl mx-auto px-5 py-3 flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🅿️</span>
-            <span className="font-bold text-xl tracking-tight">ParkingDesk</span>
-            <span className="text-indigo-300 text-xs ml-1">Heathrow</span>
-          </div>
+        <div className="max-w-screen-xl mx-auto px-3 sm:px-5 py-3">
+          <div className="flex items-center justify-between gap-2">
 
-          {/* View toggle */}
-          <div className="ml-6 flex bg-indigo-900 rounded-lg p-0.5">
-            <button
-              onClick={() => setView("dashboard")}
-              className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${view === "dashboard" ? "bg-white text-indigo-800" : "text-indigo-300 hover:text-white"}`}
-            >
-              📊 Operations
-            </button>
-            <button
-              onClick={() => setView("driver")}
-              className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${view === "driver" ? "bg-white text-indigo-800" : "text-indigo-300 hover:text-white"}`}
-            >
-              🚗 Driver App
-            </button>
-          </div>
+ 2          {/* Logo */}
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-xl flex-shrink-0">🅿️</span>
+              <span className="font-bold text-base sm:text-xl tracking-tight">ParkingDesk</span>
+              <span className="text-indigo-300 text-xs ml-1 hidden sm:inline">Heathrow</span>
+            </div>
 
-          <div className="ml-auto text-right">
-            <p className="font-mono text-sm">{clock.toLocaleTimeString("en-GB")}</p>
-            <p className="text-indigo-300 text-xs">{clock.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</p>
-          </div>
-        </div>
-      </header>
-
-      {/* ── Body ── */}
-      <main className="max-w-screen-xl mx-auto px-5 py-6">
-        {view === "dashboard"
-          ? <DashboardView jobs={jobs} onUpdate={updateJob} />
-          : <DriverAppView jobs={jobs} onAction={driverAction} />
-        }
-      </main>
-    </div>
-  );
-}
+            {/* View toggle — abbreviated labels on small screens */}
+            <div className="flex bg-indigo-900 rounded-lg p-0.5 flex-shrink-0">
+              <button
+                onClick={() => setView("dashboard")}
+              2        className={`px-2 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-colors ${view === "dashboard" ? "bg-white text-indigo-800" : "text-indigo-300 hover:text-white"}`}
+              >
+                <span className="hidden sm:inline">📊 Operations</span>
+               2<span className="sm:hidden">📊 Ops</span>
+              </button>
+              <button
+                onClick={() => setView(
