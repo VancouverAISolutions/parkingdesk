@@ -96,13 +96,25 @@ function DashboardView({ jobs, onUpdate }) {
   const [selected, setSelected] = useState(null);
   const [filter, setFilter] = useState("all");
   const filtered = filter === "all" ? jobs : jobs.filter(j => j.status === filter);
-  const counts = { total: jobs.length, awaiting: jobs.filter(j=>j.status==="awaiting").length, in_progress: jobs.filter(j=>j.status==="in_progress").length, complete: jobs.filter(j=>j.status==="complete").length, issue: jobs.filter(j=>j.status==="issue").length };
+  const counts = {
+    total: jobs.length,
+    awaiting: jobs.filter(j=>j.status==="awaiting").length,
+    in_progress: jobs.filter(j=>j.status==="in_progress").length,
+    complete: jobs.filter(j=>j.status==="complete").length,
+    issue: jobs.filter(j=>j.status==="issue").length,
+  };
 
   return (
     <div>
-      {/* Stats — 2 cols mobile, 5 cols md+ */}
+      {/* Stats — 2 cols on mobile, 5 cols on md+ */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4">
-        {[["Total","total","bg-indigo-50 text-indigo-700"],["Awaiting","awaiting","bg-yellow-50 text-yellow-700"],["Active","in_progress","bg-blue-50 text-blue-700"],["Done","complete","bg-green-50 text-green-700"],["Issues","issue","bg-red-50 text-red-700"]].map(([label,key,cls])=>(
+        {[
+          ["Total",   "total",       "bg-indigo-50 text-indigo-700"],
+          ["Awaiting","awaiting",    "bg-yellow-50 text-yellow-700"],
+          ["Active",  "in_progress", "bg-blue-50 text-blue-700"],
+          ["Done",    "complete",    "bg-green-50 text-green-700"],
+          ["Issues",  "issue",       "bg-red-50 text-red-700"],
+        ].map(([label, key, cls]) => (
           <div key={key} className={`${cls} rounded-xl p-3 text-center`}>
             <p className="text-2xl font-bold">{counts[key]}</p>
             <p className="text-xs mt-0.5">{label}</p>
@@ -111,62 +123,72 @@ function DashboardView({ jobs, onUpdate }) {
       </div>
 
       {/* Delayed banner */}
-      {jobs.some(j=>j.delayed && j.status!=="complete") && (
+      {jobs.some(j => j.delayed && j.status !== "complete") && (
         <div className="mb-4 bg-orange-50 border border-orange-300 rounded-xl px-3 py-2 flex gap-2 items-start">
           <span className="text-lg">⚠️</span>
           <div>
             <p className="font-bold text-orange-800 text-sm">Flight Delay Alert</p>
-            <p className="text-xs text-orange-700">{jobs.filter(j=>j.delayed&&j.status!=="complete").map(j=>`${j.flight} (${j.customer})`).join(" · ")}</p>
+            <p className="text-xs text-orange-700">
+              {jobs.filter(j => j.delayed && j.status !== "complete").map(j => `${j.flight} (${j.customer})`).join(" · ")}
+            </p>
           </div>
         </div>
       )}
 
       {/* Main layout: stacked on mobile, side-by-side on lg+ */}
       <div className="flex flex-col lg:flex-row gap-4">
-        {/* Job board */}
+
+        {/* Job board — takes remaining width on desktop */}
         <div className="flex-1 min-w-0">
           {/* Filter tabs */}
           <div className="flex flex-wrap gap-1.5 mb-3">
-            {[["all","All"],["awaiting","Awaiting"],["in_progress","Active"],["complete","Done"],["issue","Issues"]].map(([k,l])=>(
-              <button key={k} onClick={()=>setFilter(k)} className={`px-3 py-1 rounded-lg text-xs font-semibold ${filter===k?"bg-indigo-600 text-white":"bg-white text-gray-600 border border-gray-200"}`}>{l}</button>
+            {[["all","All"],["awaiting","Awaiting"],["in_progress","Active"],["complete","Done"],["issue","Issues"]].map(([k,l]) => (
+              <button key={k} onClick={() => setFilter(k)} className={`px-3 py-1 rounded-lg text-xs font-semibold ${filter===k ? "bg-indigo-600 text-white" : "bg-white text-gray-600 border border-gray-200"}`}>{l}</button>
             ))}
           </div>
-          {/* Job grid — 1 col mobile, 2 cols lg+ */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          {/* Job grid — 1 col mobile, 2 cols md+, 3 cols xl+ */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             {filtered.map(job => (
-              <JobCard key={job.id} job={job} selected={selected?.id===job.id} onClick={j=>setSelected(s=>s?.id===j.id?null:j)} />
+              <JobCard key={job.id} job={job} selected={selected?.id === job.id} onClick={j => setSelected(s => s?.id === j.id ? null : j)} />
             ))}
-            {filtered.length===0 && <p className="text-center text-gray-400 py-8 col-span-2">No jobs match this filter.</p>}
+            {filtered.length === 0 && <p className="text-center text-gray-400 py-8 col-span-3">No jobs match this filter.</p>}
           </div>
         </div>
 
-        {/* Sidebar — full width below on mobile, fixed 272px on lg+ */}
-        <div className="w-full lg:w-68 lg:flex-shrink-0 space-y-3">
+        {/* Sidebar — full width below job board on mobile, fixed 320px on lg+ */}
+        <div className="w-full lg:w-80 lg:flex-shrink-0 space-y-3">
           {selected && (
-            <EditPanel job={selected} onSave={(id,patch)=>{onUpdate(id,patch);setSelected(null);}} onClose={()=>setSelected(null)} />
+            <EditPanel
+              job={selected}
+              onSave={(id, patch) => { onUpdate(id, patch); setSelected(null); }}
+              onClose={() => setSelected(null)}
+            />
           )}
           {/* Driver roster */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
             <h3 className="font-bold text-gray-900 text-sm mb-3">Driver Roster</h3>
-            {/* 2-col grid on mobile, stacked on lg+ */}
+            {/* 2-col grid on mobile (compact), stacked list on lg+ (sidebar) */}
             <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
               {DRIVERS.map(d => {
-                const active = jobs.filter(j=>j.driverId===d.id&&j.status==="in_progress").length;
-                const assigned = jobs.filter(j=>j.driverId===d.id&&j.status!=="complete").length;
+                const active = jobs.filter(j => j.driverId === d.id && j.status === "in_progress").length;
+                const assigned = jobs.filter(j => j.driverId === d.id && j.status !== "complete").length;
                 return (
                   <div key={d.id} className="flex items-center gap-2">
                     <Avatar initials={d.avatar} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800 truncate">{d.name}</p>
-                      <p className="text-xs text-gray-500">{assigned} job{assigned!==1?"s":""} · {active} active</p>
+                      <p className="text-xs text-gray-500">{assigned} job{assigned !== 1 ? "s" : ""} · {active} active</p>
                     </div>
-                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0 ${active>0?"bg-blue-100 text-blue-700":"bg-gray-100 text-gray-500"}`}>{active>0?"On job":"Free"}</span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0 ${active > 0 ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}>
+                      {active > 0 ? "On job" : "Free"}
+                    </span>
                   </div>
                 );
               })}
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );
@@ -183,12 +205,12 @@ function DriverView({ jobs, onAction }) {
   const [sigDone, setSigDone] = useState({});
 
   function fakeUpload(id) {
-    setUploading(u=>({...u,[id]:true}));
-    setTimeout(()=>{ setUploading(u=>({...u,[id]:false})); setPhotoDone(p=>({...p,[id]:true})); }, 1800);
+    setUploading(u => ({ ...u, [id]: true }));
+    setTimeout(() => { setUploading(u => ({ ...u, [id]: false })); setPhotoDone(p => ({ ...p, [id]: true })); }, 1800);
   }
   function fakeSign(id) {
-    setSigning(s=>({...s,[id]:true}));
-    setTimeout(()=>{ setSigning(s=>({...s,[id]:false})); setSigDone(p=>({...p,[id]:true})); }, 1500);
+    setSigning(s => ({ ...s, [id]: true }));
+    setTimeout(() => { setSigning(s => ({ ...s, [id]: false })); setSigDone(p => ({ ...p, [id]: true })); }, 1500);
   }
 
   return (
@@ -199,15 +221,20 @@ function DriverView({ jobs, onAction }) {
         <div className="flex-1 min-w-0">
           <p className="font-bold text-lg truncate">{ME.name}</p>
           <p className="text-indigo-200 text-sm">{ME.phone}</p>
-          <p className="text-indigo-200 text-xs">{active} active job{active!==1?"s":""}</p>
+          <p className="text-indigo-200 text-xs">{active} active job{active !== 1 ? "s" : ""}</p>
         </div>
         <div className="text-right flex-shrink-0">
           <p className="text-indigo-200 text-xs">Heathrow</p>
-          <p className="font-mono text-sm">{new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</p>
+          <p className="font-mono text-sm">{new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</p>
         </div>
       </div>
 
-      {myJobs.length === 0 && <div className="text-center py-16 text-gray-400"><p className="text-4xl mb-2">🎉</p><p className="font-semibold">No jobs assigned</p></div>}
+      {myJobs.length === 0 && (
+        <div className="text-center py-16 text-gray-400">
+          <p className="text-4xl mb-2">🎉</p>
+          <p className="font-semibold">No jobs assigned</p>
+        </div>
+      )}
 
       <div className="space-y-4">
         {myJobs.map(job => {
@@ -227,16 +254,27 @@ function DriverView({ jobs, onAction }) {
                   <div className="bg-gray-50 rounded-lg p-2 col-span-2"><p className="text-xs text-gray-400">Zone</p><p className="font-semibold">{job.zone}</p></div>
                   <div className="bg-gray-50 rounded-lg p-2 col-span-2"><p className="text-xs text-gray-400">Flight</p><p className="font-semibold">{job.flight}</p></div>
                 </div>
-                {job.notes && <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 mb-3"><p className="text-xs font-semibold text-yellow-700 mb-0.5">Notes</p><p className="text-xs text-yellow-800">{job.notes}</p></div>}
+                {job.notes && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 mb-3">
+                    <p className="text-xs font-semibold text-yellow-700 mb-0.5">Notes</p>
+                    <p className="text-xs text-yellow-800">{job.notes}</p>
+                  </div>
+                )}
                 <div className="space-y-2">
-                  {job.status==="awaiting" && <button onClick={()=>onAction(job.id,"start")} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm">🚀 Start Job</button>}
-                  {job.status==="in_progress" && <>
-                    <button onClick={()=>fakeUpload(job.id)} disabled={uploading[job.id]||photoDone[job.id]} className={`w-full font-bold py-3 rounded-xl text-sm ${photoDone[job.id]?"bg-green-100 text-green-700":"bg-gray-100 text-gray-800 hover:bg-gray-200"}`}>{uploading[job.id]?"Uploading…":photoDone[job.id]?"✅ Photo Uploaded":"📷 Upload Photo"}</button>
-                    <button onClick={()=>fakeSign(job.id)} disabled={signing[job.id]||sigDone[job.id]} className={`w-full font-bold py-3 rounded-xl text-sm ${sigDone[job.id]?"bg-green-100 text-green-700":"bg-gray-100 text-gray-800 hover:bg-gray-200"}`}>{signing[job.id]?"Opening pad…":sigDone[job.id]?"✅ Signature Captured":"✍️ Get Signature"}</button>
-                    <button onClick={()=>onAction(job.id,"complete")} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl text-sm">✔ Mark Complete</button>
+                  {job.status === "awaiting" && (
+                    <button onClick={() => onAction(job.id, "start")} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm">🚀 Start Job</button>
+                  )}
+                  {job.status === "in_progress" && <>
+                    <button onClick={() => fakeUpload(job.id)} disabled={uploading[job.id] || photoDone[job.id]} className={`w-full font-bold py-3 rounded-xl text-sm ${photoDone[job.id] ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-800 hover:bg-gray-200"}`}>
+                      {uploading[job.id] ? "Uploading…" : photoDone[job.id] ? "✅ Photo Uploaded" : "📷 Upload Photo"}
+                    </button>
+                    <button onClick={() => fakeSign(job.id)} disabled={signing[job.id] || sigDone[job.id]} className={`w-full font-bold py-3 rounded-xl text-sm ${sigDone[job.id] ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-800 hover:bg-gray-200"}`}>
+                      {signing[job.id] ? "Opening pad…" : sigDone[job.id] ? "✅ Signature Captured" : "✍️ Get Signature"}
+                    </button>
+                    <button onClick={() => onAction(job.id, "complete")} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl text-sm">✔ Mark Complete</button>
                   </>}
-                  {job.status==="complete" && <div className="text-center py-2 text-green-700 font-semibold text-sm">✅ Job complete</div>}
-                  {job.status==="issue" && <button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl text-sm">🚨 Report Issue Details</button>}
+                  {job.status === "complete" && <div className="text-center py-2 text-green-700 font-semibold text-sm">✅ Job complete</div>}
+                  {job.status === "issue" && <button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl text-sm">🚨 Report Issue Details</button>}
                 </div>
               </div>
             </div>
@@ -272,34 +310,45 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-indigo-800 text-white shadow-lg">
-        <div className="max-w-screen-xl mx-auto px-3 sm:px-5 py-3">
-          <div className="flex items-center justify-between gap-2">
+        <div className="max-w-screen-xl mx-auto px-3 md:px-6 py-3">
+          <div className="flex items-center justify-between gap-3">
+
             {/* Logo */}
-            <div className="flex items-center gap-1.5 min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
               <span className="text-xl flex-shrink-0">🅿️</span>
-              <span className="font-bold text-base sm:text-xl">ParkingDesk</span>
-              <span className="text-indigo-300 text-xs ml-1 hidden sm:inline">Heathrow</span>
+              <span className="font-bold text-base md:text-xl truncate">ParkingDesk</span>
+              <span className="text-indigo-300 text-xs ml-1 hidden md:inline">Heathrow</span>
             </div>
-            {/* Toggle */}
+
+            {/* View toggle */}
             <div className="flex bg-indigo-900 rounded-lg p-0.5 flex-shrink-0">
-              <button onClick={() => setView("dashboard")} className={`px-2 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-colors ${view==="dashboard"?"bg-white text-indigo-800":"text-indigo-300 hover:text-white"}`}>
-                <span className="hidden sm:inline">📊 Operations</span>
-                <span className="sm:hidden">📊 Ops</span>
+              <button
+                onClick={() => setView("dashboard")}
+                className={`px-2 md:px-4 py-1.5 rounded-md text-xs md:text-sm font-semibold transition-colors ${view === "dashboard" ? "bg-white text-indigo-800" : "text-indigo-300 hover:text-white"}`}
+              >
+                <span className="hidden md:inline">📊 Operations Dashboard</span>
+                <span className="md:hidden">📊 Ops</span>
               </button>
-              <button onClick={() => setView("driver")} className={`px-2 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-colors ${view==="driver"?"bg-white text-indigo-800":"text-indigo-300 hover:text-white"}`}>
-                <span className="hidden sm:inline">🚗 Driver App</span>
-                <span className="sm:hidden">🚗 Driver</span>
+              <button
+                onClick={() => setView("driver")}
+                className={`px-2 md:px-4 py-1.5 rounded-md text-xs md:text-sm font-semibold transition-colors ${view === "driver" ? "bg-white text-indigo-800" : "text-indigo-300 hover:text-white"}`}
+              >
+                <span className="hidden md:inline">🚗 Driver App</span>
+                <span className="md:hidden">🚗 Driver</span>
               </button>
             </div>
-            {/* Clock — hidden on mobile */}
-            <div className="hidden sm:block text-right flex-shrink-0">
+
+            {/* Clock — hidden on mobile, visible on md+ */}
+            <div className="hidden md:block text-right flex-shrink-0">
               <p className="font-mono text-sm">{clock.toLocaleTimeString("en-GB")}</p>
-              <p className="text-indigo-300 text-xs">{clock.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})}</p>
+              <p className="text-indigo-300 text-xs">{clock.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</p>
             </div>
+
           </div>
         </div>
       </header>
-      <main className="max-w-screen-xl mx-auto px-3 sm:px-5 py-4 sm:py-6">
+
+      <main className="max-w-screen-xl mx-auto px-3 md:px-6 py-4 md:py-6">
         {view === "dashboard"
           ? <DashboardView jobs={jobs} onUpdate={updateJob} />
           : <DriverView jobs={jobs} onAction={driverAction} />
